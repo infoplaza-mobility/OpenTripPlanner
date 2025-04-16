@@ -106,6 +106,7 @@ and in the [transferRequests in build-config.json](BuildConfiguration.md#transfe
 |    transvision                                                                                       |        `object`        | Transvision filter configuration                                                                                                   | *Optional* |                          |      na     |
 |       enabled                                                                                        |        `boolean`       | Should the Transvision filter be enabled?                                                                                          | *Optional* | `false`                  | Transvision |
 |       [fasterTransfersScore](#rd_if_transvision_fasterTransfersScore)                                |        `integer`       |                                                                                                                                    | *Optional* | `2`                      | Transvision |
+|       [initialDelayDurationRatio](#rd_if_transvision_initialDelayDurationRatio)                      |        `double`        |                                                                                                                                    | *Optional* | `5.0`                    | Transvision |
 |       [maximumScoreForFasterItinerary](#rd_if_transvision_maximumScoreForFasterItinerary)            |        `double`        |                                                                                                                                    | *Optional* | `10.0`                   | Transvision |
 |       [minimumSecondsForFasterItinerary](#rd_if_transvision_minimumSecondsForFasterItinerary)        |        `integer`       |                                                                                                                                    | *Optional* | `300`                    | Transvision |
 |       [minimumTaxiSecondGroups](#rd_if_transvision_minimumTaxiSecondGroups)                          |        `integer`       |                                                                                                                                    | *Optional* | `180`                    | Transvision |
@@ -618,19 +619,26 @@ The unit is cost unit per second of time difference.
 
 amount to increment the faster score for each extra transfer compared to the minimum taxi and minimum transfers itineraries (default: `2`)
 
+<h3 id="rd_if_transvision_initialDelayDurationRatio">initialDelayDurationRatio</h3>
+
+**Since version:** `Transvision` ∙ **Type:** `double` ∙ **Cardinality:** `Optional` ∙ **Default value:** `5.0`   
+**Path:** /routingDefaults/itineraryFilters/transvision 
+
+ratio of the excess duration and earlier departure compared to a selected itinerary (default: `5`)
+
 <h3 id="rd_if_transvision_maximumScoreForFasterItinerary">maximumScoreForFasterItinerary</h3>
 
 **Since version:** `Transvision` ∙ **Type:** `double` ∙ **Cardinality:** `Optional` ∙ **Default value:** `10.0`   
 **Path:** /routingDefaults/itineraryFilters/transvision 
 
-amount to increment the faster score for each extra transfer compared to the minimum taxi and minimum transfers itineraries (default: `2`)
+maximum score for an itinerary to be considered faster, roughly the ratio of `extra taxi distance in meters / time saved in seconds` (default: `10`)
 
 <h3 id="rd_if_transvision_minimumSecondsForFasterItinerary">minimumSecondsForFasterItinerary</h3>
 
 **Since version:** `Transvision` ∙ **Type:** `integer` ∙ **Cardinality:** `Optional` ∙ **Default value:** `300`   
 **Path:** /routingDefaults/itineraryFilters/transvision 
 
-maximum score for an itinerary to be considered faster, roughly the ratio of `extra taxi distance in meters / time saved in seconds` (default: `10`)
+seconds the fastest itinerary needs to be faster compared to the best taxi/transfers itinerary (default: `300`)
 
 <h3 id="rd_if_transvision_minimumTaxiSecondGroups">minimumTaxiSecondGroups</h3>
 

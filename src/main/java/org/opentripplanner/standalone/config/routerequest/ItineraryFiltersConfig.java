@@ -327,7 +327,7 @@ removed from list.
       .of("minimumSecondsForFasterItinerary")
       .summary("")
       .description(
-        "maximum score for an itinerary to be considered faster, roughly the ratio of `extra taxi distance in meters / time saved in seconds` (default: `10`)"
+        "seconds the fastest itinerary needs to be faster compared to the best taxi/transfers itinerary (default: `300`)"
       )
       .since(V_TV)
       .asInt(300);
@@ -335,10 +335,19 @@ removed from list.
       .of("maximumScoreForFasterItinerary")
       .summary("")
       .description(
-        "amount to increment the faster score for each extra transfer compared to the minimum taxi and minimum transfers itineraries (default: `2`)"
+        "maximum score for an itinerary to be considered faster, roughly the ratio of `extra taxi distance in meters / time saved in seconds` (default: `10`)"
       )
       .since(V_TV)
       .asDouble(10);
+
+    var initialDelayDurationRatio = node
+      .of("initialDelayDurationRatio")
+      .summary("")
+      .description(
+        "ratio of the excess duration and difference in departure compared to the selected itinerary (default: `5`)"
+      )
+      .since(V_TV)
+      .asDouble(5);
 
     if (!enabled) {
       return null;
@@ -351,7 +360,8 @@ removed from list.
       minimumTransfersTaxiGroups,
       fasterTransfersScore,
       minimumSecondsForFasterItinerary,
-      maximumScoreForFasterItinerary
+      maximumScoreForFasterItinerary,
+      initialDelayDurationRatio
     );
   }
 

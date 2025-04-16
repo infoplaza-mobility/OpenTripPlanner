@@ -2,7 +2,7 @@ package org.opentripplanner.routing.algorithm.filterchain.deletionflagger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.opentripplanner.model.plan.PlanTestConstants.A;
+import static org.opentripplanner.model.plan.PlanTestConstants.*;
 import static org.opentripplanner.model.plan.TestItineraryBuilder.newItinerary;
 
 import java.util.List;
@@ -14,7 +14,7 @@ class TransvisionFilterTest {
 
   @Test
   public void streetOnlyIsRemoved() {
-    var subject = new TransvisionFilter(new TransvisionFilter.Parameters(0, 0, 0, 0, 0, 0, 0));
+    var subject = new TransvisionFilter(new TransvisionFilter.Parameters(0, 0, 0, 0, 0, 0, 0, 5));
 
     var streetOnly = newItinerary(A).drive(0, 1, A).build();
 
@@ -23,56 +23,103 @@ class TransvisionFilterTest {
 
   @Test
   public void itinerariesAreRemoved() {
-    var subject = new TransvisionFilter(new TransvisionFilter.Parameters(60, 1, 60, 1, 2, 60, 10));
+    var subject = new TransvisionFilter(
+      new TransvisionFilter.Parameters(60, 1, 60, 1, 2, 60, 10, 5)
+    );
 
-    var streetOnly = newItinerary(A).drive(0, 1, A).build();
+    var streetOnly = newItinerary(A).drive(0, 1, H).build();
 
     var nonMinTaxi = newItinerary(A)
-      .flexBus(1, 0, 5 * 60, 10000, A)
-      .bus(1, 10 * 60, 15 * 60, A)
-      .bus(1, 15 * 60, 20 * 60, A)
-      .flexBus(1, 25 * 60, 30 * 60, 10000, A)
+      .flexBus(1, 0, 5 * 60, 10000, C)
+      .bus(1, 10 * 60, 15 * 60, D)
+      .bus(1, 15 * 60, 20 * 60, E)
+      .flexBus(1, 25 * 60, 30 * 60, 10000, H)
       .build();
 
     var minTaxi = newItinerary(A)
-      .flexBus(1, 0, 5 * 60, 5000, A)
-      .bus(1, 10 * 60, 15 * 60, A)
-      .bus(1, 15 * 60, 20 * 60, A)
-      .flexBus(1, 25 * 60, 30 * 60, 5000, A)
+      .flexBus(1, 0, 5 * 60, 5000, B)
+      .bus(1, 10 * 60, 15 * 60, C)
+      .bus(1, 15 * 60, 20 * 60, D)
+      .flexBus(1, 25 * 60, 30 * 60, 5000, H)
       .build();
 
     var minTransfers = newItinerary(A)
-      .flexBus(1, 0, 5 * 60, 5000, A)
-      .bus(1, 10 * 60, 21 * 60, A)
-      .flexBus(1, 26 * 60, 31 * 60, 10000, A)
+      .flexBus(1, 0, 5 * 60, 5000, B)
+      .bus(1, 10 * 60, 21 * 60, D)
+      .flexBus(1, 26 * 60, 31 * 60, 10000, H)
       .build();
 
     var faster = newItinerary(A)
-      .flexBus(1, 0, 5 * 60, 6000, A)
-      .bus(1, 10 * 60, 12 * 60, A)
-      .bus(1, 12 * 60, 15 * 60, A)
-      .flexBus(1, 15 * 60, 20 * 60, 6000, A)
+      .flexBus(1, 0, 5 * 60, 6000, D)
+      .bus(1, 10 * 60, 12 * 60, B)
+      .bus(1, 12 * 60, 15 * 60, C)
+      .flexBus(1, 15 * 60, 20 * 60, 6000, H)
       .build();
 
     assertEquals(
       List.of(streetOnly, nonMinTaxi),
-      subject.flagForRemoval(List.of(streetOnly, nonMinTaxi, minTaxi, minTransfers))
+      subject.flagForRemoval(List.of(streetOnly, nonMinTaxi, minTaxi, minTransfers, faster))
     );
+  }
+
+  @Test
+  public void allowEarlierDepartureItinerary() {
+    var subject = new TransvisionFilter(
+      new TransvisionFilter.Parameters(60, 1, 60, 1, 2, 60, 10, -1)
+    );
+    var subjectWithRatio = new TransvisionFilter(
+      new TransvisionFilter.Parameters(60, 1, 60, 1, 2, 60, 10, 5)
+    );
+    var subjectWithArrive = new TransvisionFilter(
+      new TransvisionFilter.Parameters(60, 1, 60, 1, 2, 60, 10, -1)
+    );
+    var subjectWithArriveRatio = new TransvisionFilter(
+      new TransvisionFilter.Parameters(60, 1, 60, 1, 2, 60, 10, 5)
+    );
+
+    var earlier = newItinerary(A)
+      .flexBus(1, 0, 5 * 60, 5000, B)
+      .bus(1, 10 * 60, 21 * 60, D)
+      .flexBus(1, 26 * 60, 31 * 60, 10000, H)
+      .build();
+
+    var fastest = newItinerary(A)
+      .flexBus(1, 10 * 60, 15 * 60, 5000, B)
+      .bus(1, 20 * 60, 30 * 60, D)
+      .flexBus(1, 35 * 60, 40 * 60, 10000, H)
+      .build();
+
+    var later = newItinerary(A)
+      .flexBus(1, 20 * 60, 25 * 60, 5000, B)
+      .bus(1, 30 * 60, 41 * 60, D)
+      .flexBus(1, 46 * 60, 51 * 60, 10000, H)
+      .build();
+
+    assertEquals(List.of(earlier, later), subject.flagForRemoval(List.of(fastest, earlier, later)));
+
+    assertEquals(List.of(later), subjectWithRatio.flagForRemoval(List.of(fastest, earlier, later)));
+
+    assertEquals(
+      List.of(earlier, later),
+      subjectWithArrive.flagForRemoval(List.of(fastest, earlier, later))
+    );
+
+    assertEquals(List.of(later), subjectWithArriveRatio.flagForRemoval(List.of(fastest, later)));
   }
 
   @Test
   public void testMinTax() {
     var subjectWith0SecondGroup = new TransvisionFilter(
-      new TransvisionFilter.Parameters(1, 20, 0, 0, 0, 0, 0)
+      new TransvisionFilter.Parameters(1, 20, 0, 0, 0, 0, 0, 5)
     );
     var subjectWith90SecondGroup = new TransvisionFilter(
-      new TransvisionFilter.Parameters(90, 20, 0, 0, 0, 0, 0)
+      new TransvisionFilter.Parameters(90, 20, 0, 0, 0, 0, 0, 5)
     );
     var subjectWith600SecondGroup = new TransvisionFilter(
-      new TransvisionFilter.Parameters(600, 20, 0, 0, 0, 0, 0)
+      new TransvisionFilter.Parameters(600, 20, 0, 0, 0, 0, 0, 5)
     );
     var subjectWithNoTransferPenalty = new TransvisionFilter(
-      new TransvisionFilter.Parameters(90, 0, 0, 0, 0, 0, 0)
+      new TransvisionFilter.Parameters(90, 0, 0, 0, 0, 0, 0, 5)
     );
 
     var nonMinTaxi = newItinerary(A)
@@ -132,13 +179,13 @@ class TransvisionFilterTest {
   @Test
   void testMinTransfers() {
     var subjectWith90SecondGroup = new TransvisionFilter(
-      new TransvisionFilter.Parameters(0, 0, 90, 1, 0, 0, 0)
+      new TransvisionFilter.Parameters(0, 0, 90, 1, 0, 0, 0, 5)
     );
     var subjectWith600SecondGroup = new TransvisionFilter(
-      new TransvisionFilter.Parameters(0, 0, 600, 1, 0, 0, 0)
+      new TransvisionFilter.Parameters(0, 0, 600, 1, 0, 0, 0, 5)
     );
     var subjectWithNoTaxiPenalty = new TransvisionFilter(
-      new TransvisionFilter.Parameters(0, 0, 600, 0, 0, 0, 0)
+      new TransvisionFilter.Parameters(0, 0, 600, 0, 0, 0, 0, 5)
     );
 
     var minTaxi = newItinerary(A)
@@ -218,10 +265,10 @@ class TransvisionFilterTest {
 
   @Test
   void testFasterItineraryWithMinTaxiDuration() {
-    var subject = new TransvisionFilter(new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 60, 10));
+    var subject = new TransvisionFilter(new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 60, 10, 5));
 
     var subjectWith600Seconds = new TransvisionFilter(
-      new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 600, 10)
+      new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 600, 10, 5)
     );
 
     var minTaxi = newItinerary(A)
@@ -288,7 +335,7 @@ class TransvisionFilterTest {
 
   @Test
   void testFasterItineraryWithMinTaxiTransfer() {
-    var subject = new TransvisionFilter(new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 60, 10));
+    var subject = new TransvisionFilter(new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 60, 10, 5));
 
     var minTaxi = newItinerary(A)
       .flexBus(1, 0, 5 * 60, 5000, A)
@@ -383,10 +430,10 @@ class TransvisionFilterTest {
       .map(TransvisionFilter.Classification::classify)
       .toList();
 
-    var subject = new TransvisionFilter(new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 60, 10));
+    var subject = new TransvisionFilter(new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 60, 10, 5));
 
     var subjectWithLowScore = new TransvisionFilter(
-      new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 60, 1)
+      new TransvisionFilter.Parameters(0, 0, 0, 0, 1, 60, 1, 5)
     );
 
     assertTrue(

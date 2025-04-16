@@ -3,7 +3,9 @@ package org.opentripplanner.routing.algorithm.filterchain.deletionflagger;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.opentripplanner.model.plan.Itinerary;
 import org.opentripplanner.model.plan.Leg;
 
@@ -49,22 +51,49 @@ public class TransvisionFilter implements ItineraryDeletionFlagger {
     return itineraries
       .stream()
       .filter(itinerary -> {
-        if (minTaxi.itinerary == itinerary) {
+        if (isItinerarySimilar(minTaxi.itinerary, itinerary)) {
           return false;
         }
 
-        if (minTransfers.isPresent() && minTransfers.get().itinerary == itinerary) {
+        if (
+          minTransfers.isPresent() && isItinerarySimilar(minTransfers.get().itinerary, itinerary)
+        ) {
           return false;
         }
 
         //noinspection RedundantIfStatement
-        if (faster.isPresent() && faster.get().itinerary == itinerary) {
+        if (faster.isPresent() && isItinerarySimilar(faster.get().itinerary, itinerary)) {
           return false;
         }
 
         return true;
       })
       .toList();
+  }
+
+  private boolean isItinerarySimilar(Itinerary left, Itinerary right) {
+    if (!Objects.equals(placeAndLegIds(left), placeAndLegIds(right))) {
+      return false;
+    }
+
+    if (Objects.equals(left.getDuration(), right.getDuration())) {
+      return true;
+    }
+
+    if (
+      parameters.initialDelayDurationRatio >= 0 &&
+      right.getDuration().compareTo(left.getDuration()) > 0
+    ) {
+      var departureDifference = Math.abs(
+        Duration.between(right.startTime(), left.startTime()).getSeconds()
+      );
+      var durationDifference = right.getDuration().minus(left.getDuration()).getSeconds();
+      return (
+        (double) departureDifference / durationDifference > parameters.initialDelayDurationRatio
+      );
+    }
+
+    return false;
   }
 
   Classification findItineraryWithMinimumTaxi(List<Classification> classifications) {
@@ -193,6 +222,21 @@ public class TransvisionFilter implements ItineraryDeletionFlagger {
       .map(Scored::classification);
   }
 
+  private Object placeAndLegIds(Itinerary itinerary) {
+    return itinerary
+      .getLegs()
+      .stream()
+      .filter(Leg::isTransitLeg)
+      .flatMap(leg ->
+        Stream.of(
+          leg.getFrom().stop.getStationOrStopId(),
+          leg.getRoute().getId(),
+          leg.getTo().stop.getStationOrStopId()
+        )
+      )
+      .toList();
+  }
+
   record Classification(
     Itinerary itinerary,
     double taxiDistance,
@@ -222,6 +266,7 @@ public class TransvisionFilter implements ItineraryDeletionFlagger {
     int minimumTransfersTaxiGroups,
     double fasterTransfersScore,
     int minimumSecondsForFasterItinerary,
-    double maximumScoreFasterItinerary
+    double maximumScoreFasterItinerary,
+    double initialDelayDurationRatio
   ) {}
 }
