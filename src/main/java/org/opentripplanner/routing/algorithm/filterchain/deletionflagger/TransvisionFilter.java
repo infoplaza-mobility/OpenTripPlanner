@@ -118,6 +118,9 @@ public class TransvisionFilter implements ItineraryDeletionFlagger {
     //noinspection OptionalGetWithoutIsPresent
     return withMinTaxi
       .stream()
+      .sorted(
+        Comparator.comparing(Classification::duration).thenComparing(Classification::taxiDistance)
+      )
       .map(classified -> {
         // A simple scoring primarily on duration with a small penalty for transfers
         var score =
@@ -164,6 +167,9 @@ public class TransvisionFilter implements ItineraryDeletionFlagger {
 
     return withMinTransfers
       .stream()
+      .sorted(
+        Comparator.comparing(Classification::duration).thenComparing(Classification::taxiDistance)
+      )
       .map(classified -> {
         // A simple scoring primarily on duration with a small penalty for taxi distance over the minimum
         var durationGroups = Math.floor(
