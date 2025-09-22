@@ -16,16 +16,20 @@ public class DirectFlexPathCalculator implements FlexPathCalculator {
   private static final int DIRECT_EXTRA_TIME = 5 * 60;
 
   private final double flexSpeed;
+  private final double flexDistanceMultiplier;
   private final Duration maxFlexTripDuration;
 
   public DirectFlexPathCalculator(FlexConfig config) {
     this.flexSpeed = config.directFlexPathSpeed();
+    this.flexDistanceMultiplier = config.directFlexDistanceMultiplier();
     this.maxFlexTripDuration = config.maxFlexTripDuration();
   }
 
   @Override
   public FlexPath calculateFlexPath(Vertex fromv, Vertex tov, int fromStopIndex, int toStopIndex) {
-    double distance = SphericalDistanceLibrary.distance(fromv.getCoordinate(), tov.getCoordinate());
+    double distance =
+      flexDistanceMultiplier *
+      SphericalDistanceLibrary.distance(fromv.getCoordinate(), tov.getCoordinate());
     double durationSeconds = (distance / flexSpeed) + DIRECT_EXTRA_TIME;
 
     if (maxFlexTripDuration.toSeconds() < durationSeconds) {

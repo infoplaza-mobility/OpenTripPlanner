@@ -26,6 +26,7 @@ public class FlexConfig {
   private final Duration maxEgressWalkDuration;
 
   private final double directFlexPathSpeed;
+  private final double directFlexDistanceMultiplier;
   private final double maxVehicleSpeed;
   private final double vehicleReluctance;
   private final boolean useMinimumWeight;
@@ -48,6 +49,7 @@ public class FlexConfig {
     useMinimumWeight = false;
     filterByMode = false;
     directFlexPathSpeed = 8.;
+    directFlexDistanceMultiplier = 1.3;
     streetPathCalculatorTimeout = Duration.ofSeconds(2);
     streetTimeFactor = 1.25; // taking the bus/taxi is 25% slower than the car
     allowOnlyStopReachedOnBoard = false;
@@ -67,6 +69,7 @@ public class FlexConfig {
     useMinimumWeight = false;
     filterByMode = false;
     directFlexPathSpeed = 8.;
+    directFlexDistanceMultiplier = 1.3;
     streetPathCalculatorTimeout = Duration.ofSeconds(2);
     streetTimeFactor = 1.25; // taking the bus/taxi is 25% slower than the car
     allowOnlyStopReachedOnBoard = false;
@@ -148,6 +151,13 @@ public class FlexConfig {
         .since(V_TV)
         .summary("Vehicle speed when using the direct (straight-line) flex path calculator.")
         .asDouble(DEFAULT.directFlexPathSpeed);
+
+    directFlexDistanceMultiplier =
+      json
+        .of("directFlexDistanceMultiplier")
+        .since(V_TV)
+        .summary("Distance multiplier when using the direct (straight-line) flex path calculator.")
+        .asDouble(DEFAULT.directFlexDistanceMultiplier);
 
     streetTimeFactor =
       json
@@ -246,6 +256,10 @@ public class FlexConfig {
 
   public double directFlexPathSpeed() {
     return directFlexPathSpeed;
+  }
+
+  public double directFlexDistanceMultiplier() {
+    return directFlexDistanceMultiplier;
   }
 
   public double maxVehicleSpeed() {

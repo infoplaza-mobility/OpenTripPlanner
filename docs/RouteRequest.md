@@ -624,7 +624,7 @@ amount to increment the faster score for each extra transfer compared to the min
 **Since version:** `Transvision` ∙ **Type:** `double` ∙ **Cardinality:** `Optional` ∙ **Default value:** `5.0`   
 **Path:** /routingDefaults/itineraryFilters/transvision 
 
-ratio of the excess duration and earlier departure compared to a selected itinerary (default: `5`)
+ratio of the excess duration and difference in departure compared to the selected itinerary (default: `5`)
 
 <h3 id="rd_if_transvision_maximumScoreForFasterItinerary">maximumScoreForFasterItinerary</h3>
 

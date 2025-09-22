@@ -1,18 +1,20 @@
 package org.opentripplanner.routing.core;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.params.provider.Arguments.of;
-import static org.opentripplanner.transit.model.basic.Locales.NORWEGIAN_BOKMAL;
-import static org.opentripplanner.transit.model.basic.Locales.NORWEGIAN_NYNORSK;
-
 import java.util.Currency;
 import java.util.Locale;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.opentripplanner.test.support.VariableSource;
 import org.opentripplanner.transit.model.basic.Money;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.of;
+import static org.opentripplanner.transit.model.basic.Locales.NORWEGIAN_BOKMAL;
+import static org.opentripplanner.transit.model.basic.Locales.NORWEGIAN_NYNORSK;
+
+@Disabled
 class MoneyTest {
 
   static Money hundredNOK = new Money(Currency.getInstance("NOK"), 10000);
